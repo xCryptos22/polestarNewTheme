@@ -1007,9 +1007,9 @@ local function recolor()
 	local T = ns.Theme
 	for kind, token in pairs(TOKEN) do
 		local c = colors[kind]
-		if T and T.Color then c[1], c[2], c[3] = T.Color(token) end
+		if T and T.Color then c[1], c[2], c[3] = (T.WorldColor or T.Color)(token) end
 	end
-	if T and T.Color then under[1], under[2], under[3] = T.Color("scrim") end
+	if T and T.Color then under[1], under[2], under[3] = (T.WorldColor or T.Color)("scrim") end
 end
 
 function RouteLines.Refresh()

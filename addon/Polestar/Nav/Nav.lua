@@ -94,7 +94,11 @@ local function themeColor(name)
 	local T = ns.Theme
 	if type(T) ~= "table" then return nil end
 	local ok, r, g, b
-	if name == "accent" and type(T.Accent) == "function" then
+	-- The arrow and the map's layers stand over the game world: its colours
+	-- (Theme.WorldColor), the accent among them.
+	if type(T.WorldColor) == "function" then
+		ok, r, g, b = pcall(T.WorldColor, name)
+	elseif name == "accent" and type(T.Accent) == "function" then
 		ok, r, g, b = pcall(T.Accent)
 	elseif type(T.Color) == "function" then
 		ok, r, g, b = pcall(T.Color, name)

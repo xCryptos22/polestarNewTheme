@@ -18,9 +18,10 @@ local type, ipairs, format = type, ipairs, string.format
 
 local LAYER = "maps.dungeons"
 
+-- Map pins and the game's tooltip: the world's colours.
 local function rgb(name)
 	local T = ns.Theme
-	if T and T.Color then return T.Color(name) end
+	if T and T.Color then return (T.WorldColor or T.Color)(name) end
 	return 1, 1, 1
 end
 

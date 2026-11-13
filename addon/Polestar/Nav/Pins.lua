@@ -303,7 +303,7 @@ local BACKDROP_ALPHA, BACKDROP_SCALE = 0.55, 1.2
 local function backdropColor()
 	local T = ns.Theme
 	if type(T) == "table" and type(T.Color) == "function" then
-		local ok, r, g, b = pcall(T.Color, "scrim")
+		local ok, r, g, b = pcall(T.WorldColor or T.Color, "scrim")
 		if ok and type(r) == "number" then return r, g, b end
 	end
 	return 0.04, 0.05, 0.08
@@ -404,7 +404,7 @@ end
 local function themeColor(name, r, g, b)
 	local T = ns.Theme
 	if type(T) == "table" and type(T.Color) == "function" then
-		local ok, cr, cg, cb = pcall(T.Color, name)
+		local ok, cr, cg, cb = pcall(T.WorldColor or T.Color, name)
 		if ok and type(cr) == "number" then return cr, cg, cb end
 	end
 	return r, g, b

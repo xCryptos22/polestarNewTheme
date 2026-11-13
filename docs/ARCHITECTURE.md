@@ -2802,6 +2802,12 @@ come after the quest window it opened. The test is the events, not
 Polestar.Theme.Accent() -> r, g, b
 Polestar.Theme.ClassColor(classFile) -> r, g, b | nil     -- the client's colour for a class file; nil: the player's class
 Polestar.Theme.Color(name) -> r, g, b, a
+Polestar.Theme.WorldColor(name) -> r, g, b, a  -- for map marks, route lines, the arrow and the game's tooltips: Color's, Hearth's in Journal
+Polestar.Theme.ColorFor(region, name) -> r, g, b, a  -- Color's, or on a light skin's dark ground (Theme.OnDark) its dark skin's
+Polestar.Theme.WashFor(region, name) -> r, g, b, a   -- Wash, as ColorFor
+Polestar.Theme.OnDark(region) -> bool    -- region is in a psDarkGround frame (the shells' sidebar and rail) in a light skin
+Polestar.Theme.LightSkin() -> bool       -- the skin writes dark ink on light grounds (Journal)
+Polestar.Theme.ShellPortrait() -> bool   -- the shells wear the portrait medallion (Journal)
    -- grounds "bg","panel","panelAlt","sidebar","footer","sky"; text "text","textDim","textMuted";
    -- "accent","ink" (hairlines/washes),"star","shade" (wells, text shadows, art fades),
    -- "scrim" (dark grounds on zone art),"onAccent" (text on accent fills),"shadow";
@@ -2895,6 +2901,37 @@ file ID and coordinates from `Theme/GameArt.lua` (generated with the slice
 margins by `node tools/polestar.js media game-art`, tools/media/game-art.js);
 `classic` names the vanilla files (the dialog box and tooltips through
 BackdropTemplate).
+
+**Journal** (`journal`) is the one light skin: Hearth's controls (no kit, so
+`Theme.Kit()` is nil and the widgets draw Polestar's own controls in its
+tokens) on the client's quest parchment, the atlas `QuestBG-Parchment` the
+quest window's own template draws, stretched over every window, menu and
+toast. The big windows wear WoW Forever's metal round it (`bigMetal`'s frame,
+title in gold and drag strip, without the rock's streaks), the guide window
+and the toasts its bronze line; their close button is the window's own in the
+red art (`Theme.KitIconButton`, through `closeKit`). Its text colours are the
+client's for parchment where `GlobalColor` names one
+(`PARCHMENT_MATERIAL_TEXT_COLOR` #2E1F0F, `PARCHMENT_MATERIAL_TITLETEXT_COLOR`
+#000000, `PARCHMENT_ACCESSIBILITY_GREEN` #134404 and `_RED` #AC0303); the
+subject colours, which the client has no parchment form of, are the game's
+hues darkened to 4.5:1 on the darkest paper (#DEC794), so the palette meets
+the house legibility floor. No text shadow. Dark ink would vanish over the
+game world and in the game's own dark tooltip, so what Polestar lays there
+(map marks and their medallions, route lines, travel and dungeon pins, the
+arrow and its text, tooltip lines) reads `Theme.WorldColor`, which in a skin
+listed in `WORLD_SKIN` resolves that skin's world skin (Hearth) instead.
+The shells' sidebar and rail are marked `psDarkGround`: Journal paints them
+dark leather (`leather` to `leatherBottom`), and everything in them takes WoW
+Forever's palette (gold rows, white text, its washes), because `W.Color`,
+the hover, divider and selection washes and Journal's control paints ask by
+frame (`Theme.ColorFor`, `Theme.WashFor`; `DARK_SKIN`). The shells also wear
+a portrait medallion where the game's portrait frames hold theirs (62 units
+at TOPLEFT -5, 7 of the frame), drawn from Polestar's own masks (`circle`,
+`skin-ring`, `logo`) so its size does not depend on the client's portrait
+corner art; the shell's emblem steps aside for it. A transparent guide window
+keeps the paper behind its text (`GF.Backing` returns `GF.VEIL_LIGHT`, no
+soft shades, no outline: `Theme.LightSkin`), whatever `ui.backing` says, and
+the Backing option is greyed out.
 
 No client art is copied into the addon; the kits name files and atlases. With
 POLESTAR_CLIENT_ART holding the client's UI textures decoded to <fileID>.tga

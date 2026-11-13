@@ -46,7 +46,8 @@ end
 local function color(name, fr, fg, fb)
 	local T = ns.Theme
 	if T and T.Color then
-		local r, g, b = T.Color(name)
+		-- Lines in the game's own tooltip: the world's colours.
+		local r, g, b = (T.WorldColor or T.Color)(name)
 		if r then return r, g, b end
 	end
 	return fr, fg, fb

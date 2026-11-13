@@ -77,7 +77,8 @@ local function color(name)
 	if c then return c end
 	local r, g, b, a
 	local Theme = ns.Theme
-	if Theme and Theme.Color then r, g, b, a = Theme.Color(name) end
+	-- Map marks and the game's tooltip lines: the world's colours.
+	if Theme and Theme.Color then r, g, b, a = (Theme.WorldColor or Theme.Color)(name) end
 	if not r then
 		local fb = FALLBACK_COLORS[name] or FALLBACK_COLORS.text
 		r, g, b, a = fb[1], fb[2], fb[3], fb[4]

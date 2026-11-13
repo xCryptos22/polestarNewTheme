@@ -1352,7 +1352,7 @@ local function targetTooltip(b, tip)
 		local r, g, bl = 1, 1, 1
 		if plate and T and T.Color then
 			local _, tone = Buttons.TargetLook(target.verbs[i], target.list[i], target.ids[i], target.marks[i])
-			r, g, bl = T.Color(tone)
+			r, g, bl = (T.WorldColor or T.Color)(tone)
 		end
 		tip:AddLine(target.list[i], r, g, bl)
 	end

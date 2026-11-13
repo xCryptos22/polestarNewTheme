@@ -252,6 +252,7 @@ L["Hearth"] = "Foyer"
 L["Blizzard"] = "Blizzard"
 L["Classic"] = "Classique"
 L["WoW Forever"] = "WoW Forever"
+L["Journal"] = "Journal"
 
 -- Theme/Widgets.lua
 L["Click to copy"] = "Cliquez pour copier"

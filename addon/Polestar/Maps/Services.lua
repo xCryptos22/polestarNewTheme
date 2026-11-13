@@ -68,8 +68,10 @@ local function rolesOf(record)
 	return roles
 end
 
+-- Map marks and the game's tooltip: the world's colours.
 local function rgb(key)
-	if ns.Theme and ns.Theme.Color then return ns.Theme.Color(key) end
+	local T = ns.Theme
+	if T and T.Color then return (T.WorldColor or T.Color)(key) end
 	return 1, 1, 1
 end
 Maps.ServiceColor = function()
