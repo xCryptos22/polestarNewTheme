@@ -1292,6 +1292,34 @@ fn non_leveling_guides_name_their_category_and_a_place_only_when_the_guide_has_a
 	assert_eq!(out, json!(["Professions  \u{b7}  Levels 5\u{2013}60", "Reputation  \u{b7}  Stormwind City  \u{b7}  Levels 12\u{2013}60", "Professions  \u{b7}  Levels 5\u{2013}60",]));
 }
 
+// Journal writes dark ink, which no outline or soft shade carries over the world: a transparent guide window keeps
+// its paper behind the text whatever the backing; the other skins keep the backing the player chose.
+#[test]
+fn journal_keeps_its_paper_behind_a_transparent_guide_window_whatever_the_backing() {
+	let out = run(r#"
+		Polestar.Set("ui.style", "transparent")
+		Polestar.Set("ui.backing", "none")
+		local out = { house = GF.Backing() or false }
+		Polestar.Set("ui.backing", "soft")
+		out.houseSoft = GF.SoftShade()
+		Polestar.Set("ui.skin", "journal")
+		out.journal, out.journalSoft = GF.Backing(), GF.SoftShade()
+		Polestar.Set("ui.backing", "none")
+		out.journalNone = GF.Backing()
+		out.veil = GF.veil:IsShown()
+		Polestar.Set("ui.style", "standard")
+		out.standard = GF.Backing() or false
+		emit(out)"#)
+	.remove(0);
+	assert_eq!(out["house"], false, "the house style: no backing when the player turned it off");
+	assert_eq!(out["houseSoft"], true);
+	assert_eq!(out["journal"], json!(0.9), "Journal: the paper at GF.VEIL_LIGHT");
+	assert_eq!(out["journalSoft"], false, "no soft shades under the paper");
+	assert_eq!(out["veil"], true, "the veil is shown");
+	assert_eq!(out["journalNone"], json!(0.9), "whatever the backing");
+	assert_eq!(out["standard"], false, "only while transparent");
+}
+
 #[test]
 fn guide_lookup_button_follows_toolbar_skin_and_transparent_chrome_1528() {
 	let out = run(r#"
@@ -1326,7 +1354,7 @@ fn guide_lookup_button_follows_toolbar_skin_and_transparent_chrome_1528() {
 	.remove(0);
 	assert_eq!(out["empty"], json!({ "shown": true, "lookup": true, "nearby": true }));
 	assert_eq!(out["order"], json!({ "lookup": true, "report": true, "nearby": true }));
-	assert_eq!(out["sizes"].as_array().unwrap().len(), 6);
+	assert_eq!(out["sizes"].as_array().unwrap().len(), 7);
 	assert!(out["sizes"].as_array().unwrap().iter().all(|s| s == &json!([true, true, true])), "the button follows every skin's metrics");
 	assert_eq!(out["rest"], 0);
 	assert_eq!(out["hover"], 1);

@@ -2697,6 +2697,7 @@ L["Hearth"] = "Herd"
 L["Blizzard"] = "Blizzard"
 L["Classic"] = "Classic"
 L["WoW Forever"] = "WoW Forever"
+L["Journal"] = "Journal"
 
 -- QoL/QuickBind.lua
 L["Not needed right now: shown so you can bind it."] = "Gerade nicht gebraucht: angezeigt, damit du eine Taste belegen kannst."

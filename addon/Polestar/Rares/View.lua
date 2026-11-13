@@ -173,7 +173,7 @@ local function note(i, parent)
 end
 
 local function itemLines(tip)
-	local r, g, b = Theme.Color("textDim")
+	local r, g, b = Theme.WorldColor("textDim")
 	tip:AddLine(L["Click: every way to get it in Lookup"], r, g, b, true)
 	tip:AddLine(L["Alt-click: a guide to get it"], r, g, b, true)
 end

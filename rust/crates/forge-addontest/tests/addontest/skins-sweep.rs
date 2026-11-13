@@ -66,7 +66,7 @@ fn switching_the_skin_restyles_the_flight_timer_and_every_polestar_frame_live_13
 	assert_eq!(out["missing"], "", "every swept frame was built");
 	assert!(out["painted"].as_u64().unwrap() > 10, "the sweep saw the skinned frames: {}", out["painted"]);
 	let skins = out["skins"].as_object().unwrap();
-	assert_eq!(skins.len(), 6);
+	assert_eq!(skins.len(), 7);
 	for (key, s) in skins {
 		assert_eq!(s["stale"], 0, "{key}: every skinned frame repainted in the skin in use");
 		let frames = s["frames"].as_object().unwrap();

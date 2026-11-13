@@ -155,6 +155,12 @@ Theme.HexColor = hex
 --   "forever", "blizzard", "classic"   the client's own art: WoW Forever's,
 --               the retail art (Blizzard Style) and the vanilla files
 --               (Theme/GameSkins.lua draws them)
+--   "journal"   Journal: Hearth's controls on the client's quest parchment
+--               (QuestBG-Parchment) in WoW Forever's bronze frame, written
+--               in the game's parchment colours (GlobalColor's
+--               PARCHMENT_MATERIAL_TEXT_COLOR and its kin); what Polestar
+--               lays over the game world keeps Hearth's bright colours
+--               (Theme.WorldColor)
 -- A skin brings its whole palette, its fonts, its frame paints and its sizes.
 -- The colour scheme, ground colour and brightness belong to the house style;
 -- the player's own accent, window border and arrow colours win in every skin.
@@ -237,8 +243,40 @@ SKIN_PALETTES.classic = gamePalette({
 	separator = hex("969696", 0.45), divider = hex("969696", 0.45), accentLine = hex("969696", 0.6),
 	border = hex("696969"), windowEdge = hex("696969"), hover = hex("FFFFFF", 0.08), selected = hex("FFD100", 0.14),
 })
+-- Journal: dark ink on light paper. Where the client names a colour for
+-- parchment it is that colour (GlobalColor: PARCHMENT_MATERIAL_TEXT_COLOR
+-- #2E1F0F for text, PARCHMENT_MATERIAL_TITLETEXT_COLOR #000000 for titles,
+-- PARCHMENT_ACCESSIBILITY_GREEN #134404 and _RED #AC0303); the client has no
+-- parchment form of the subject colours, so they are the game's hues
+-- darkened until they read at 4.5:1 on the darkest paper (#DEC794). Gold
+-- (#FFD100) stays for the frame's title and the red buttons' labels.
+SKIN_PALETTES.journal = gamePalette({
+	bg = hex("E2CC9C", 0.96), bgBottom = hex("D6BC86", 0.96), panel = hex("EAD9B0", 0.98), panelAlt = hex("DEC794"),
+	sidebar = hex("DEC794"), footer = hex("DEC794"), sky = hex("E2CC9C"), skyBottom = hex("D6BC86"),
+	text = hex("2E1F0F"), textDim = hex("4E3519"), textMuted = hex("5C4222"), textOff = hex("7A6248"),
+	title = hex("000000"), frameTitle = hex("FFD100"), ink = hex("2E1F0F"), star = hex("FFFFFF", 0), shade = hex("000000"),
+	scrim = hex("EAD9B0"), onAccent = hex("FFF3D6"), shadow = hex("000000", 0.6),
+	accent = hex("6B4709"),
+	veil = hex("000000", 0), veilWindow = hex("000000", 0), menuBg = hex("EAD9B0", 0.97),
+	inputBg = hex("FFF8E6", 0.45), control = hex("D3B880", 0.6),
+	accentLine = hex("8A6D35", 0.6), padSelect = hex("6B4709", 0.14), chipAccent = hex("6B4709", 0.16),
+	separator = hex("8A6D35", 0.45), rowLine = hex("5C4518", 0.15),
+	border = hex("8A6D35"), windowEdge = hex("5C4518"), divider = hex("8A6D35", 0.45), hover = hex("6B4709", 0.1),
+	selected = hex("6B4709", 0.16), toggle = hex("C9AE78"), track = hex("B89C66"),
+	progress = hex("2E1F0F", 0.18), chip = hex("6B4709", 0.1), box = hex("6B5428"),
+	thumb = hex("6B4709"), swatch = hex("000000", 0.25), watermark = hex("2E1F0F", 0.04), mover = hex("6B4709", 0.12),
+	frameEdge = hex("9A7A34"), frameEdgeDark = hex("5C4518"), titleLine = hex("8A6D35"),
+	leather = hex("241A0F"), leatherBottom = hex("1A120A"),
+	success = hex("134404"), arrive = hex("134404"), todo = hex("6B4709"), warning = hex("7A3D00"),
+	later = hex("7A3D00"), danger = hex("AC0303"), manual = hex("5B2D8F"), skipped = hex("1A5566"),
+	icon = hex("4E3519"), iconHover = hex("000000"), buttonText = hex("FFD100"), personName = hex("1D4F8C"), tabRest = hex("4E3519"),
+	rowLabel = hex("2E1F0F"), navRest = hex("2E1F0F"),
+	link = hex("1D4F8C"), npc = hex("1D4F8C"), quest = hex("7A4000"), item = hex("5B2D8F"), place = hex("7A3517"),
+	object = hex("4E3519"), level = hex("2E1F0F"), skill = hex("2B5A10"), spell = hex("1A5566"), faction = hex("7A1F4F"),
+	area = hex("6B3A17"), achievement = hex("823C00"), dungeon = hex("4B2A8F"), rare = hex("8A2A00"),
+})
 Theme.SKIN_PALETTES = SKIN_PALETTES
-Theme.SKIN_ORDER = { "polestar", "halo", "hearth", "forever", "blizzard", "classic" }
+Theme.SKIN_ORDER = { "polestar", "halo", "hearth", "forever", "blizzard", "classic", "journal" }
 -- Skins hidden from the picker while their issues are fixed. A saved value
 -- naming a hidden skin resolves to the house style at load; the raw saved
 -- value is left alone so the player's choice restores when the skin returns.
@@ -250,7 +288,15 @@ local HIDDEN_SKINS = {}
 Theme._testShowHidden = false
 -- The skins drawn in game colours and controls (the client's check boxes,
 -- sliders, red buttons, the game font with its hard shadow).
-local GAME_SKINS = { hearth = true, forever = true, blizzard = true, classic = true }
+local GAME_SKINS = { hearth = true, forever = true, blizzard = true, classic = true, journal = true }
+-- Skins drawn on light grounds, and the skin whose colours what Polestar
+-- lays over the game world (map marks, route lines, the arrow) and the
+-- game's own dark tooltips take there (Theme.WorldColor).
+local WORLD_SKIN = { journal = "hearth" }
+-- In a light skin, the skin whose colours a dark ground of its own (the
+-- shells' leather sidebar and rail, psDarkGround) and what sits on it take
+-- (Theme.ColorFor): WoW Forever's gold and white, as the game's settings list.
+local DARK_SKIN = { journal = "forever" }
 Theme.GROUNDS = { "bg", "panel", "panelAlt", "sidebar", "footer", "sky" }
 
 -- Alphas of the ink washes, by role.
@@ -523,6 +569,13 @@ function Theme.GameSkin(key)
 	return GAME_SKINS[key or Theme.SkinKey()] or false
 end
 
+-- Whether the skin in use (or `key`) writes dark ink on light grounds
+-- (Journal): no outline carries such text over the game world, so a window
+-- with no ground of its own keeps the paper behind it (GF.Backing).
+function Theme.LightSkin(key)
+	return WORLD_SKIN[key or Theme.SkinKey()] ~= nil
+end
+
 function Theme.SkinChoices()
 	return {
 		{ value = "polestar", text = ns.L["Polestar"] },
@@ -531,6 +584,7 @@ function Theme.SkinChoices()
 		{ value = "forever", text = ns.L["WoW Forever"] },
 		{ value = "blizzard", text = ns.L["Blizzard"] },
 		{ value = "classic", text = ns.L["Classic"] },
+		{ value = "journal", text = ns.L["Journal"] },
 	}
 end
 
@@ -576,6 +630,13 @@ local function resolveSkin(skin)
 	out.arrowNear = isColor(near) and { near[1], near[2], near[3], 1 } or copy(out.arrive)
 	out.arrowText = copy(out.arrow)
 	out.arrowNearText = copy(out.arrowNear)
+	-- The arrow stands over the game world: a light-ground skin's arrow is its
+	-- world skin's (the player's own colours win there too).
+	local world = WORLD_SKIN[skin]
+	if world then
+		local w = resolveSkin(world)
+		out.arrow, out.arrowNear, out.arrowText, out.arrowNearText = w.arrow, w.arrowNear, w.arrowText, w.arrowNearText
+	end
 	return out
 end
 
@@ -673,6 +734,57 @@ function Theme.Color(name)
 	return c[1], c[2], c[3], c[4]
 end
 
+local PW -- the world palette of a light-ground skin; rebuilt with P
+local PD -- the palette of a light skin's dark grounds; rebuilt with P
+
+-- A colour for what Polestar lays over the game world (map marks and their
+-- medallions, route lines, the arrow) or writes into the game's own dark
+-- tooltips: Theme.Color's, except in a skin drawn on light grounds
+-- (Journal), whose dark ink would vanish there: its world skin's (Hearth's).
+function Theme.WorldColor(name)
+	local from = WORLD_SKIN[Theme.SkinKey()]
+	if not from then return Theme.Color(name) end
+	if not PW then PW = resolveSkin(from) end
+	local c = PW[name] or PW.text
+	return c[1], c[2], c[3], c[4]
+end
+
+-- Whether region sits on a dark ground of a light skin: it or a frame it is
+-- in is marked psDarkGround (the shells' sidebar and rail) while the skin in
+-- use has a dark skin (DARK_SKIN). -> bool
+function Theme.OnDark(region)
+	if not DARK_SKIN[Theme.SkinKey()] then return false end
+	local f = region
+	for _ = 1, 24 do
+		if type(f) ~= "table" then return false end
+		if rawget(f, "psDarkGround") then return true end
+		f = f.GetParent and f:GetParent() or nil
+	end
+	return false
+end
+
+local function darkPalette()
+	if not PD then PD = resolveSkin(DARK_SKIN[Theme.SkinKey()]) end
+	return PD
+end
+
+-- The colour `name` for region: Theme.Color's, or on a light skin's dark
+-- ground (Theme.OnDark) its dark skin's.
+function Theme.ColorFor(region, name)
+	if not Theme.OnDark(region) then return Theme.Color(name) end
+	local pal = darkPalette()
+	local c = pal[name] or pal.text
+	return c[1], c[2], c[3], c[4]
+end
+
+-- Theme.Wash for region, as Theme.ColorFor.
+function Theme.WashFor(region, name)
+	if not Theme.OnDark(region) then return Theme.Wash(name) end
+	local pal = darkPalette()
+	local c = pal[WASH[name] and name or "border"]
+	return c[1], c[2], c[3], c[4]
+end
+
 -- "ffrrggbb" for |c escapes.
 function Theme.Hex(name)
 	local r, g, b = Theme.Color(name)
@@ -749,7 +861,7 @@ end
 -- Glyphs a skin draws its own way (DIRECTION_B_HALO.md §7: the report flag
 -- and the Nearby services house).
 local GAME_ICON = { bug = "flag", ["icon-goto"] = "house" }
-local SKIN_ICON = { halo = GAME_ICON, hearth = GAME_ICON, forever = GAME_ICON, blizzard = GAME_ICON, classic = GAME_ICON }
+local SKIN_ICON = { halo = GAME_ICON, hearth = GAME_ICON, forever = GAME_ICON, blizzard = GAME_ICON, classic = GAME_ICON, journal = GAME_ICON }
 
 -- A glyph's name in the skin in use.
 function Theme.Icon(name)
@@ -865,7 +977,7 @@ local FAMILIES = { opensans = OPEN_SANS, inter = FACES, fira = FIRA }
 
 -- The font a skin starts with (ui.font "skin", the default): the house
 -- style and the others use the game's, Halo uses Fira Sans.
-local SKIN_FONT = { polestar = "game", halo = "fira", hearth = "game", forever = "game", blizzard = "game", classic = "game" }
+local SKIN_FONT = { polestar = "game", halo = "fira", hearth = "game", forever = "game", blizzard = "game", classic = "game", journal = "game" }
 
 -- A skin's own sizes, where they differ from the ladder above (the handoff's
 -- typography: DIRECTION_B_HALO.md §2, the same in DIRECTION_A_BLIZZARD.md §2).
@@ -903,9 +1015,9 @@ local METRICS = {
 		guideProgress = 14, guideGrip = 8, guideFoot = 28, guideUpRow = 20, guideUpToggle = 26, guideNavGap = 4,
 	},
 }
--- The game's looks take Hearth's sizes and type; WoW Forever's guide window
--- keeps its rows and the lit goal clear of its bronze border (#306).
-for _, k in ipairs({ "forever", "blizzard", "classic" }) do
+-- The game's looks and Journal take Hearth's sizes and type; WoW Forever's
+-- guide window keeps its rows and the lit goal clear of its bronze border (#306).
+for _, k in ipairs({ "forever", "blizzard", "classic", "journal" }) do
 	METRICS[k] = METRICS.hearth
 	SKIN_ROLES[k] = SKIN_ROLES.hearth
 end
@@ -1006,9 +1118,10 @@ local flat = setmetatable({}, { __mode = "k" }) -- fontString -> true: no drop s
 local scripted = setmetatable({}, { __mode = "k" }) -- fontString -> its text's script font, or false
 
 -- Text shadows: the house style's soft 1, -1; Halo's 1 down at 90 % black
--- (DIRECTION_B_HALO.md §2); Blizzard's hard 1, -1 black, as the game's.
+-- (DIRECTION_B_HALO.md §2); Blizzard's hard 1, -1 black, as the game's;
+-- none in Journal, as the game's own text on parchment.
 local HARD = { 1, -1, 1 }
-local SKIN_SHADOW = { halo = { 0, -1, 0.9 }, hearth = HARD, forever = HARD, blizzard = HARD, classic = HARD }
+local SKIN_SHADOW = { halo = { 0, -1, 0.9 }, hearth = HARD, forever = HARD, blizzard = HARD, classic = HARD, journal = { 0, 0, 0 } }
 
 local function paintShadow(fs)
 	if not fs.SetShadowOffset then return end
@@ -1044,7 +1157,8 @@ local function paintFont(fs, role)
 	local script = Theme.ScriptFont(text)
 	scripted[fs] = script or false
 	if script then path = script end
-	if outlined[fs] then flags = "OUTLINE" end
+	-- A black outline smears dark ink (a light skin's text, on its paper).
+	if outlined[fs] and not Theme.LightSkin() then flags = "OUTLINE" end
 	-- Dark ink on an accent fill takes no outline either: a font that follows
 	-- EllesmereUI's brings its OUTLINE, and black round dark glyphs on a
 	-- bright accent smears them (#521). MONOCHROME and the like stay.
@@ -1284,7 +1398,7 @@ local function hoverWash(frame)
 		d.hover:SetTexture(Theme.Media("white"))
 		d.hover:SetAllPoints(frame)
 	end
-	d.hover:SetVertexColor(Theme.Wash("hover"))
+	d.hover:SetVertexColor(Theme.WashFor(frame, "hover"))
 	return d.hover
 end
 
@@ -1444,7 +1558,7 @@ local HOUSE_PAINT = {
 				thumb:SetWidth(2)
 			end
 		end
-		if thumb and thumb.SetVertexColor then thumb:SetVertexColor(Theme.Wash("thumb")) end
+		if thumb and thumb.SetVertexColor then thumb:SetVertexColor(Theme.WashFor(f, "thumb")) end
 	end,
 }
 
@@ -1724,6 +1838,62 @@ local SKIN_PAINT = {
 			Theme.Border(d.box, Theme.Color("box"))
 		end,
 	},
+	-- Journal: Hearth's controls drawn light on the parchment, wells and fields
+	-- a shade of the paper edged in bronze, the game's red buttons for text
+	-- buttons. Its windows and popups (the parchment in the bronze frame) are
+	-- Theme/GameSkins.lua's; the panel here is their stand-in until it loads.
+	-- The shells' sidebar and rail (psDarkGround) are dark leather, and what
+	-- sits on them takes WoW Forever's colours (Theme.ColorFor): the controls
+	-- below ask for their colours by frame.
+	journal = {
+		panel = function(f)
+			if f.psBare then return bare(f) end
+			fill(f):SetVertexColor(Theme.Color("menuBg"))
+			Theme.Border(f, Theme.Color("frameEdgeDark"))
+		end,
+		tile = function(f)
+			fill(f):SetVertexColor(Theme.ColorFor(f, "control"))
+			Theme.Border(f, Theme.ColorFor(f, "titleLine"))
+			hoverWash(f)
+		end,
+		sidebar = function(f)
+			if rawget(f, "psDarkGround") then
+				gradientFill(f, { Theme.Color("leather") }, { Theme.Color("leatherBottom") })
+			else
+				fill(f):SetVertexColor(Theme.Color("sidebar"))
+			end
+		end,
+		inset = function(f)
+			fill(f):SetVertexColor(Theme.ColorFor(f, "control"))
+		end,
+		button = function(f)
+			if f.psTextButton then return redButton(f) end
+			fill(f):SetVertexColor(Theme.ColorFor(f, "control"))
+			Theme.Border(f, Theme.ColorFor(f, "titleLine"))
+			hoverWash(f)
+		end,
+		dropdown = function(f)
+			fill(f):SetVertexColor(Theme.ColorFor(f, "control"))
+			Theme.Border(f, Theme.ColorFor(f, "border"))
+			hoverWash(f)
+		end,
+		editbox = function(f)
+			fill(f):SetVertexColor(Theme.ColorFor(f, "inputBg"))
+			if f.psFocused then
+				local r, g, b = Theme.ColorFor(f, "accent")
+				Theme.Border(f, r, g, b, 0.8)
+			else
+				Theme.Border(f, Theme.ColorFor(f, "border"))
+			end
+		end,
+		checkbox = function(f)
+			HOUSE_PAINT.checkbox(f)
+			local d = f.psSkin
+			d.box:SetSize(15, 15)
+			fill(d.box):SetVertexColor(Theme.ColorFor(f, "inputBg"))
+			Theme.Border(d.box, Theme.ColorFor(f, "box"))
+		end,
+	},
 }
 Theme.SKIN_PAINT = SKIN_PAINT
 -- The paint helpers Theme/GameSkins.lua builds the game's looks from.
@@ -1779,7 +1949,7 @@ end
 
 -- Repaint everything we skinned or fonted, then tell the listeners.
 function Theme.Refresh()
-	P = nil
+	P, PW, PD = nil, nil, nil
 	for sky in pairs(bands) do paintBand(sky) end
 	for frame, kind in pairs(skinned) do paint(frame, kind) end
 	for fs, role in pairs(fonted) do paintFont(fs, role) end
@@ -1891,7 +2061,7 @@ local function migrate()
 	elseif c ~= nil then
 		ui.accent = nil
 	end
-	P = nil
+	P, PW, PD = nil, nil, nil
 end
 if ns.OnInit then ns.OnInit(migrate) end
 -- The class is certain once logged in; a palette read earlier is redone.

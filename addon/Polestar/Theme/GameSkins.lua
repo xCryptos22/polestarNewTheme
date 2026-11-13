@@ -124,10 +124,20 @@ local KITS = {
 }
 Theme.KITS = KITS
 
--- The kit of the skin in use, or nil (the house style, Halo, Hearth).
+-- The kit of the skin in use, or nil (the house style, Halo, Hearth,
+-- Journal).
 function Theme.Kit()
 	return KITS[Theme.SkinKey()]
 end
+
+-- The kit whose close button the skin in use wears: its own, or WoW
+-- Forever's red one in Journal (which draws Polestar's own controls, no kit).
+-- While there is one, the big windows' close button sits on their frame's
+-- corner, standing for the shell's own (Widgets: W.Shell hides that).
+local function closeKit()
+	return Theme.Kit() or (Theme.SkinKey() == "journal" and KITS.forever) or nil
+end
+Theme.CloseKit = closeKit
 
 ---------------------------------------------------------------------------
 -- Art: one named piece of a kit -> file, coordinates and size
@@ -454,7 +464,7 @@ local function closeArt(b, kit, size)
 		d = b:CreateTexture(nil, "ARTWORK", nil, 2)
 		l = b:CreateTexture(nil, "HIGHLIGHT")
 		k.closeN, k.closeD, k.closeL = n, d, l
-		b:HookScript("OnMouseDown", function() if Theme.Kit() then k.closeN:SetAlpha(0); k.closeD:SetAlpha(1) end end)
+		b:HookScript("OnMouseDown", function() if closeKit() then k.closeN:SetAlpha(0); k.closeD:SetAlpha(1) end end)
 		b:HookScript("OnMouseUp", function() k.closeN:SetAlpha(1); k.closeD:SetAlpha(0) end)
 	end
 	for _, t in ipairs({ n, d, l }) do
@@ -889,6 +899,132 @@ end
 for name in pairs(KITS) do Theme.SKIN_PAINT[name] = paints(name) end
 
 ---------------------------------------------------------------------------
+-- Journal: the client's quest parchment in WoW Forever's bronze frame
+---------------------------------------------------------------------------
+
+-- The quest window's paper (QuestFrameTemplates: QuestBG-Parchment).
+local PARCHMENT = "QuestBG-Parchment"
+
+-- The parchment over f's body at alpha a: the atlas stretched over it, the
+-- palette's paper colour where the client has no such atlas.
+local function parchment(f, a)
+	local t = body(f, 1, 1, 1, a)
+	if draw(t, KITS.forever, PARCHMENT) then
+		t:SetVertexColor(1, 1, 1, a)
+	else
+		t:SetTexture(Theme.Media("white"))
+		t:SetTexCoord(0, 1, 0, 1)
+		local r, g, b = Theme.Color("panel")
+		t:SetVertexColor(r, g, b, a)
+		t:Show()
+	end
+	return t
+end
+
+-- The shells (options, the guide menu) wear a portrait medallion over the
+-- frame's top left corner, where the game's portrait frames hold theirs
+-- (PortraitFrameBaseTemplate: 62 units at TOPLEFT -5, 7 of the frame): the
+-- logo on a night sky in a bronze ring, drawn from Polestar's own masks
+-- (circle, skin-ring: its ring at 0.4 of its size, 0.05 wide) so its size
+-- holds on every client. The shell's emblem steps aside for it.
+local SHELL_PORTRAIT = { journal = true }
+function Theme.ShellPortrait()
+	return SHELL_PORTRAIT[Theme.SkinKey()] or false
+end
+
+local PORTRAIT = 62
+local function portrait(f, frame)
+	local o = child(f, "portrait", 510)
+	o:EnableMouse(false)
+	o:ClearAllPoints()
+	o:SetPoint("TOPLEFT", frame, "TOPLEFT", -5, 7)
+	o:SetSize(PORTRAIT, PORTRAIT)
+	local function disc(key, layer, sub, media, size, r, g, b)
+		local t = tex(f, key, layer, sub, o)
+		t:SetTexture(Theme.Media(media))
+		t:SetTexCoord(0, 1, 0, 1)
+		t:ClearAllPoints()
+		t:SetPoint("CENTER", o, "CENTER", 0, 0)
+		t:SetSize(size, size)
+		t:SetVertexColor(r, g, b, 1)
+		t:Show()
+	end
+	disc("portraitEdge", "BACKGROUND", 0, "circle", PORTRAIT + 2, 0, 0, 0)
+	disc("portraitMetal", "BACKGROUND", 1, "circle", PORTRAIT, 0.42, 0.33, 0.16)
+	disc("portraitShine", "BORDER", 0, "skin-ring", 70, 0.7, 0.6, 0.39)
+	disc("portraitSky", "BORDER", 1, "circle", 48, 0.08, 0.11, 0.2)
+	disc("portraitTrim", "ARTWORK", 0, "skin-ring", 60, 0.79, 0.64, 0.29)
+	disc("portraitLogo", "ARTWORK", 1, "logo", 34, 1, 1, 1)
+end
+
+-- The big windows: WoW Forever's metal round the parchment (bigMetal's
+-- frame, title, drag strip and red close button on its corner, without the
+-- rock's top streaks), the title in gold on the metal; the shells' portrait.
+local function journalBig(f)
+	local kit = KITS.forever
+	parchment(f, opacity(f))
+	local frame = child(f, "frame", 0)
+	frame:EnableMouse(false)
+	frame:ClearAllPoints()
+	frame:SetPoint("TOPLEFT", f, "TOPLEFT", -7, 21)
+	frame:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 2, -2)
+	local o = child(f, "metal", 500)
+	o:EnableMouse(false)
+	o:SetAllPoints(frame)
+	nine(f, "metalArt", kit, kit.metal, o, kit.metalOut, "OVERLAY", 0, kit.metalSize)
+	local fs = title(f, o, "TOP", o, 0, -5)
+	fs:SetPoint("LEFT", o, "LEFT", 60, 0)
+	fs:SetPoint("RIGHT", o, "RIGHT", -60, 0)
+	fs:SetTextColor(Theme.Color("frameTitle"))
+	local bar = dragBar(f, o)
+	bar:ClearAllPoints()
+	bar:SetPoint("TOPLEFT", o, "TOPLEFT", 0, 0)
+	bar:SetPoint("TOPRIGHT", o, "TOPRIGHT", -30, 0)
+	bar:SetHeight(21)
+	closeButton(f, o, kit, kit.closeSize, "TOPRIGHT", kit.closeAt[1], kit.closeAt[2])
+	if rawget(f, "psSidebar") and Theme.ShellPortrait() then
+		portrait(f, frame)
+	else
+		hideKey(f, "portrait")
+	end
+end
+
+-- The guide window and the toasts: the parchment inside WoW Forever's
+-- bronze line, laid as GUIDE.forever lays it.
+local function journalGuide(f)
+	local kit = KITS.forever
+	parchment(f, opacity(f))
+	local o = child(f, "edge", 0)
+	o:EnableMouse(false)
+	o:ClearAllPoints()
+	if f.psStrip then
+		o:SetPoint("TOPLEFT", f.psStrip, "BOTTOMLEFT", 0, 0)
+	else
+		o:SetPoint("TOPLEFT", f, "TOPLEFT", 0, 0)
+	end
+	o:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 0, 0)
+	sliced(f, "slim", kit, kit.slim, o, { 3, 0, 3, 3 }, "BORDER", 0, true)
+end
+
+local JOURNAL = Theme.SKIN_PAINT.journal
+JOURNAL.window = function(f)
+	if f.psBare then
+		P.bare(f)
+		for _, key in ipairs({ "edge", "frame", "metal", "portrait" }) do hideKey(f, key) end
+		return
+	end
+	P.hideBorder(f)
+	if f.psShadow then f.psShadow:Hide() end
+	if f.psGuide or f.psLight then journalGuide(f) else journalBig(f) end
+end
+-- Menus and popups: the same paper, edged in dark bronze.
+JOURNAL.panel = function(f)
+	if f.psBare then return P.bare(f) end
+	parchment(f, 0.97)
+	Theme.Border(f, Theme.Color("frameEdgeDark"))
+end
+
+---------------------------------------------------------------------------
 -- Parts the widgets and the guide window ask for
 ---------------------------------------------------------------------------
 
@@ -905,9 +1041,9 @@ end
 -- An icon button in a kit: the close art, a plate under the glyph (or, in
 -- Classic, the page arrows for ‹ ›). -> true when the kit drew it.
 function Theme.KitIconButton(b)
-	local kit = Theme.Kit()
 	local framed = rawget(b, "psFramed")
 	local isClose = rawget(b, "psIconName") == "close"
+	local kit = isClose and closeKit() or Theme.Kit()
 	for _, key in ipairs({ "plate", "plateLit", "closeN", "closeD", "closeL" }) do hideKey(b, key) end
 	if not kit or not (framed or isClose) then
 		if b.Icon then veil(b.Icon, false) end

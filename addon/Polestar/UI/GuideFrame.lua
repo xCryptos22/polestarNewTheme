@@ -3741,10 +3741,16 @@ end
 -- behind each string on screen (GF.PaintShades), the world showing between
 -- and around the lines. "none": the outlined text alone on the world. (On
 -- GF: the main chunk is at Lua's 200 locals.)
+-- A light skin (Journal) writes in dark ink, which neither an outline nor a
+-- soft shade carries over the world: whatever the backing, its transparent
+-- window keeps the paper (its scrim) behind the text at GF.VEIL_LIGHT.
 GF.VEIL = { dark = 0.68 }
+GF.VEIL_LIGHT = 0.9
 GF.VEIL_FEATHER = 20
 function GF.Backing()
-	return transparent() and GF.VEIL[ns.Get("ui.backing")] or nil
+	if not transparent() then return nil end
+	if Theme.LightSkin() then return GF.VEIL_LIGHT end
+	return GF.VEIL[ns.Get("ui.backing")]
 end
 function GF.PaintVeil(s)
 	Theme.PaintScrim(s, GF.Backing() or 0)
@@ -3767,7 +3773,7 @@ GF.SHADE_FEATHER = { x = 30, y = 12 }
 GF.SHADE_INSET = { x = 10, y = 6 }
 GF.shades, GF.shadeHooked = {}, {}
 GF.shadeFrame = CreateFrame("Frame")
-function GF.SoftShade() return transparent() and ns.Get("ui.backing") == "soft" end
+function GF.SoftShade() return transparent() and not Theme.LightSkin() and ns.Get("ui.backing") == "soft" end
 
 function GF.ShadeText(fs, on)
 	local s = GF.shades[fs]

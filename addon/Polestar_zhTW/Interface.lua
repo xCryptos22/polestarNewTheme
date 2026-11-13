@@ -251,6 +251,7 @@ L["Hearth"] = "爐邊"
 L["Blizzard"] = "暴雪"
 L["Classic"] = "經典"
 L["WoW Forever"] = "WoW Forever"
+L["Journal"] = "日誌"
 
 -- Theme/Widgets.lua
 L["Click to copy"] = "點擊以複製"

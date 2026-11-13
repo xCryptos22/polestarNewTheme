@@ -169,7 +169,7 @@ onEnter = function(button)
 	if not (f and c and c.staged and ownActive(f, c)) then return end
 	local text, color = O.TooltipLine(button.GetNodeID and button:GetNodeID())
 	if not text then return end
-	local r, g, b = Theme.Color(color)
+	local r, g, b = Theme.WorldColor(color)
 	GameTooltip:AddLine(text, r, g, b, true)
 	GameTooltip:Show()
 end

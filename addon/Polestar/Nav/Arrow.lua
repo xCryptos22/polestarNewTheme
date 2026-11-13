@@ -62,7 +62,7 @@ local SPRITE = DIAL * 1.5
 ns.RegisterDefaults("nav", { arrowStyle = "skin" })
 
 -- The style a skin's arrow takes ("skin" in nav.arrowStyle).
-local SKIN_ARROW = { polestar = "3d", halo = "halo", hearth = "hearth", forever = "hearth", blizzard = "hearth", classic = "hearth" }
+local SKIN_ARROW = { polestar = "3d", halo = "halo", hearth = "hearth", forever = "hearth", blizzard = "hearth", classic = "hearth", journal = "hearth" }
 local DART = 54          -- the skins' dart, in the 64-unit dial
 local DART_NEAR = 43.7   -- 40 m, in yards: the skins' darts turn to the arrival colour
 local SKIN_RING = 48     -- the skins' arrival ring

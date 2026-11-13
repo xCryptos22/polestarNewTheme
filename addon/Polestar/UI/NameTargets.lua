@@ -30,7 +30,7 @@ local function enter(b)
 	b.psHover = true
 	ownerScript(b, "OnEnter")
 	if GameTooltip then
-		local r, g, blue = ns.Theme.Color("textDim")
+		local r, g, blue = ns.Theme.WorldColor("textDim")
 		local mark = ns.QoL.On("markTarget")
 		local hint = mark and L["Click to target and mark %s (out of combat)."] or L["Click to target %s (out of combat)."]
 		GameTooltip:AddLine(string.format(hint, b.psName or ""), r, g, blue, true)

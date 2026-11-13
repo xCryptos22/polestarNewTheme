@@ -46,7 +46,7 @@ local painters = setmetatable({}, { __mode = "k" }) -- object -> fn(object)
 function W.Color(region, name, alpha)
 	colored[region] = name
 	region.psAlpha = alpha
-	local r, g, b, a = Theme.Color(name)
+	local r, g, b, a = Theme.ColorFor(region, name)
 	a = region.psVeiled and 0 or (a or 1) * (alpha or 1)
 	if region:GetObjectType() == "Texture" then
 		region:SetVertexColor(r, g, b, a)
@@ -119,7 +119,7 @@ function W.Divider(parent, vertical, alpha)
 	local t = parent:CreateTexture(nil, "BORDER")
 	t:SetTexture(WHITE)
 	W.Painter(t, function(tex)
-		local r, g, b, a = Theme.Wash("divider")
+		local r, g, b, a = Theme.WashFor(tex, "divider")
 		tex:SetVertexColor(r, g, b, a * (alpha or 1))
 		if vertical then tex:SetWidth(Theme.Pixel(parent)) else tex:SetHeight(Theme.Pixel(parent)) end
 	end)
@@ -149,13 +149,13 @@ function W.Tooltip(owner, anchor, title, lines)
 			local l = lines[i]
 			if type(l) == "table" then
 				if l.right ~= nil then
-					local r, g, b = Theme.Color("textDim")
+					local r, g, b = Theme.WorldColor("textDim")
 					GameTooltip:AddDoubleLine(l.left, l.right, r, g, b, 1, 1, 1)
 				else
 					GameTooltip:AddLine(l[1], l[2], l[3], l[4], true)
 				end
 			else
-				local r, g, b = Theme.Color("textDim")
+				local r, g, b = Theme.WorldColor("textDim")
 				GameTooltip:AddLine(l, r, g, b, true)
 			end
 		end
@@ -269,7 +269,7 @@ local function hoverTexture(frame, alphaScale)
 	hl:SetTexture(WHITE)
 	hl:SetAllPoints(frame)
 	W.Painter(hl, function(t)
-		local r, g, b, a = Theme.Wash("hover")
+		local r, g, b, a = Theme.WashFor(t, "hover")
 		t:SetVertexColor(r, g, b, a * (alphaScale or 1))
 	end)
 	return hl
@@ -2372,10 +2372,10 @@ local function navButton(f, i)
 		else
 			t:SetWidth(w)
 			if t.SetGradient and CreateColor then
-				local r, g, bb, a = Theme.Wash("selected")
+				local r, g, bb, a = Theme.WashFor(t, "selected")
 				t:SetGradient("HORIZONTAL", CreateColor(r, g, bb, a), CreateColor(r, g, bb, a))
 			else
-				t:SetVertexColor(Theme.Wash("selected"))
+				t:SetVertexColor(Theme.WashFor(t, "selected"))
 			end
 		end
 	end)
@@ -2810,6 +2810,8 @@ function W.Shell(name, opts)
 		rail:SetPoint("TOPLEFT", f, "TOPLEFT", 1, -1)
 		rail:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 1, 1)
 		rail:SetWidth(RAIL)
+		-- A light skin (Journal) draws the rail and the sidebar dark (Theme.OnDark).
+		rail.psDarkGround = true
 		Theme.Skin(rail, "sidebar")
 		draggable(rail)
 		f.Rail = rail
@@ -2824,6 +2826,7 @@ function W.Shell(name, opts)
 	side:SetPoint("TOPLEFT", f, "TOPLEFT", 1 + RAIL, -1)
 	side:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 1 + RAIL, 1)
 	side:SetWidth(SB)
+	side.psDarkGround = true
 	Theme.Skin(side, "sidebar")
 	draggable(side)
 	f.Sidebar = side
@@ -2863,7 +2866,15 @@ function W.Shell(name, opts)
 	f.Emblem.Glow = W.Tex(emblemParent, "BORDER", "glow")
 	f.Emblem.Glow:SetSize(EMBLEM * 2, EMBLEM * 2)
 	f.Emblem.Glow:SetPoint("CENTER", f.Emblem, "CENTER", 0, 0)
-	W.Painter(f.Emblem.Glow, function(t) local r, g, b = Theme.Accent(); t:SetVertexColor(r, g, b, 0.22) end)
+	W.Painter(f.Emblem.Glow, function(t) local r, g, b = Theme.ColorFor(t, "accent"); t:SetVertexColor(r, g, b, 0.22) end)
+	-- Journal's portrait medallion on the frame's corner carries the emblem
+	-- (Theme/GameSkins.lua): the shell's own steps aside.
+	W.Painter(f.Emblem.Hot, function()
+		local own = not (Theme.ShellPortrait and Theme.ShellPortrait())
+		f.Emblem:SetShown(own)
+		f.Emblem.Hot:SetShown(own)
+		f.Emblem.Glow:SetShown(own)
+	end)
 	f.Wordmark = W.Tex(side, "ARTWORK", "wordmark-small", "text")
 	f.Wordmark:SetSize(256, 32)
 	f.Wordmark:SetPoint("TOPLEFT", side, "TOPLEFT", textX - WORD_INK, -WORD_TOP)
@@ -2923,10 +2934,11 @@ function W.Shell(name, opts)
 	f.Subtitle:SetSpacing(2)
 	f.Close = W.IconButton(head, "close", 28, L["Close"], function() f:Hide() end, 14)
 	f.Close:SetPoint("TOPRIGHT", head, "TOPRIGHT", -12, -12)
-	-- The game's looks put the close button on the window frame's corner.
-	f.Close:SetShown(not Theme.Kit())
+	-- The game's looks and Journal put the close button on the window frame's
+	-- corner.
+	f.Close:SetShown(not Theme.CloseKit())
 	Theme.OnChanged(function()
-		f.Close:SetShown(not Theme.Kit())
+		f.Close:SetShown(not Theme.CloseKit())
 		if rawget(f, "HeaderTools") then f.HeaderTools:Place() end
 	end)
 	-- The window frame's own close button (the game's looks) stands for this
@@ -3021,7 +3033,7 @@ local function railButton(f, i)
 	b.Selected = b:CreateTexture(nil, "BACKGROUND")
 	b.Selected:SetTexture(WHITE)
 	b.Selected:SetAllPoints(b)
-	W.Painter(b.Selected, function(t) t:SetVertexColor(Theme.Wash("selected")) end)
+	W.Painter(b.Selected, function(t) t:SetVertexColor(Theme.WashFor(t, "selected")) end)
 	b.Bar = b:CreateTexture(nil, "ARTWORK")
 	b.Bar:SetTexture(WHITE)
 	b.Bar:SetWidth(2)

@@ -224,7 +224,7 @@ fn fonts_keep_skin_and_user_choices_with_client_fonts_for_cjk_and_fira_for_russi
 			r#"
 		local out = {}
 		out.default = (T.FontSpec("title"))
-		for _, skin in ipairs({ "hearth", "forever", "blizzard", "classic" }) do
+		for _, skin in ipairs({ "hearth", "forever", "blizzard", "classic", "journal" }) do
 			Polestar.Set("ui.skin", skin)
 			out[skin] = (T.FontSpec("title"))
 		end
@@ -250,7 +250,7 @@ fn fonts_keep_skin_and_user_choices_with_client_fonts_for_cjk_and_fira_for_russi
 	// The game's Cyrillic font has no middle dot: with the skin's font left unset, Fira Sans; a font picked stays.
 	assert_eq!(ru["default"], FIRA, "ruRU default");
 	assert_eq!(ru["skinChoice"], FIRA, "ruRU with the house font");
-	for skin in ["hearth", "forever", "blizzard", "classic"] {
+	for skin in ["hearth", "forever", "blizzard", "classic", "journal"] {
 		assert_eq!(ru[skin], FIRA, "ruRU {skin} by default");
 	}
 	assert_eq!(ru["game"], GAME, "ruRU with \"the game's\" font picked");
@@ -671,7 +671,7 @@ fn skins_polestar_by_default_halo_and_hearth_bring_their_tokens_fonts_sizes_and_
 		out.savedForever = T.SkinKey()
 		emit(out)"#);
 	assert_eq!(out["key"], "polestar");
-	assert_eq!(out["choices"], json!(["polestar", "halo", "hearth", "forever", "blizzard", "classic"]));
+	assert_eq!(out["choices"], json!(["polestar", "halo", "hearth", "forever", "blizzard", "classic", "journal"]));
 	assert_eq!(out["houseRow"], 40);
 	assert_eq!(out["houseHero"], 26, "the house ladder is unchanged");
 	let h = &out["halo"];
@@ -705,6 +705,63 @@ fn skins_polestar_by_default_halo_and_hearth_bring_their_tokens_fonts_sizes_and_
 	assert_eq!(b["font"], "Fonts\\FRIZQT__.TTF", "the game's font");
 	assert_eq!(out["unknown"], "polestar", "an unknown skin is the house style");
 	assert_eq!(out["savedForever"], "forever", "a saved \"forever\" choice draws the WoW Forever skin again (#306)");
+}
+
+// Journal (Theme.lua, "Skins"): the client's parchment colours in Polestar's windows, legible by the house floor;
+// the game's bright ones (Hearth's) for what is laid over the game world and the game's tooltips.
+#[test]
+fn skins_journal_writes_in_the_game_s_parchment_colours_and_keeps_hearth_s_bright_ones_for_the_world() {
+	let out = run(r#"
+		local function c(name) return { T.Color(name) } end
+		local function w(name) return { T.WorldColor(name) } end
+		local out = { houseNpc = c("npc"), houseWorldNpc = w("npc") }
+		Polestar.Set("ui.skin", "journal")
+		out.key, out.game, out.kit = T.SkinKey(), T.GameSkin(), T.Kit() ~= nil
+		out.text, out.title, out.success, out.danger = c("text"), c("title"), c("success"), c("danger")
+		out.npc, out.worldNpc, out.worldText, out.worldAccent = c("npc"), w("npc"), w("text"), w("accent")
+		out.arrow, out.font, out.row, out.pal = c("arrow"), (T.FontSpec("body")), T.Metric("row", 40), T.Palette()
+		out.legible = T.Legibility(T.Palette())
+		out.light, out.portrait = T.LightSkin(), T.ShellPortrait()
+		-- The leather sidebar (psDarkGround) and what sits on it take WoW Forever's colours.
+		local side = CreateFrame("Frame", nil, UIParent)
+		side.psDarkGround = true
+		local row = CreateFrame("Frame", nil, side)
+		local label = row:CreateTexture()
+		local paper = UIParent:CreateTexture()
+		out.onDark, out.onPaper = T.OnDark(label), T.OnDark(paper)
+		out.darkText, out.paperText = { T.ColorFor(label, "text") }, { T.ColorFor(paper, "text") }
+		out.darkNav = { T.ColorFor(label, "navRest") }
+		Polestar.Set("ui.skin", "forever")
+		out.foreverText, out.foreverNav = c("text"), c("navRest")
+		out.foreverOnDark = T.OnDark(label)
+		Polestar.Set("ui.skin", "hearth")
+		out.hearthNpc = c("npc")
+		out.hearthLight, out.hearthPortrait = T.LightSkin(), T.ShellPortrait()
+		emit(out)"#);
+	assert_eq!(out["houseNpc"], out["houseWorldNpc"], "outside Journal the world's colours are the palette's");
+	assert_eq!(out["key"], "journal");
+	assert_eq!(out["game"], true, "the game's font, red buttons and check boxes");
+	assert_eq!(out["kit"], false, "Polestar's own controls, no kit");
+	assert_eq!(round(&out["text"]), vec![0.18, 0.122, 0.059, 1.0], "PARCHMENT_MATERIAL_TEXT_COLOR #2E1F0F");
+	assert_eq!(round(&out["title"]), vec![0.0, 0.0, 0.0, 1.0], "PARCHMENT_MATERIAL_TITLETEXT_COLOR #000000");
+	assert_eq!(round(&out["success"]), vec![0.075, 0.267, 0.016, 1.0], "PARCHMENT_ACCESSIBILITY_GREEN #134404");
+	assert_eq!(round(&out["danger"]), vec![0.675, 0.012, 0.012, 1.0], "PARCHMENT_ACCESSIBILITY_RED #AC0303");
+	assert_eq!(round(&out["npc"]), vec![0.114, 0.31, 0.549, 1.0], "#1D4F8C");
+	assert_eq!(out["worldNpc"], out["hearthNpc"], "the world reads Hearth's colours");
+	assert_eq!(round(&out["worldText"]), vec![1.0, 1.0, 1.0, 1.0]);
+	assert_eq!(round(&out["worldAccent"]), vec![1.0, 0.82, 0.0, 1.0], "the game's gold over the world");
+	assert_eq!(round(&out["arrow"]), vec![1.0, 0.82, 0.0, 1.0], "the arrow stands over the world");
+	assert_eq!(out["font"], "Fonts\\FRIZQT__.TTF", "the game's font");
+	assert_eq!(out["row"], 28, "Hearth's sizes");
+	assert!(out["legible"].as_f64().unwrap() >= 1.0, "Journal's palette meets the floor: {}", out["legible"]);
+	assert_legible("journal", &out["pal"]);
+	assert_eq!(json!([out["light"].clone(), out["hearthLight"].clone()]), json!([true, false]), "only Journal is a light skin");
+	assert_eq!(json!([out["portrait"].clone(), out["hearthPortrait"].clone()]), json!([true, false]), "the shells' portrait in Journal");
+	assert_eq!(json!([out["onDark"].clone(), out["onPaper"].clone()]), json!([true, false]));
+	assert_eq!(out["darkText"], out["foreverText"], "the leather sidebar's text: WoW Forever's");
+	assert_eq!(out["darkNav"], out["foreverNav"], "its rows in WoW Forever's gold");
+	assert_eq!(out["paperText"], out["text"], "on the paper: Journal's ink");
+	assert_eq!(out["foreverOnDark"], false, "outside a light skin nothing is on a dark ground");
 }
 
 #[test]

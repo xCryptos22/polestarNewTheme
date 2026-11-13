@@ -36,10 +36,11 @@ local function taxiName(node, short)
 	return short and node.short or node.name
 end
 
+-- Pins on the map and lines in the game's tooltip: the world's colours.
 local function color(name, a)
 	local T = ns.Theme
 	if T and T.Color then
-		local r, g, b = T.Color(name)
+		local r, g, b = (T.WorldColor or T.Color)(name)
 		return { r, g, b, a or 1 }
 	end
 	return { 1, 1, 1, a or 1 }
@@ -47,7 +48,7 @@ end
 
 local function rgb(name)
 	local T = ns.Theme
-	if T and T.Color then return T.Color(name) end
+	if T and T.Color then return (T.WorldColor or T.Color)(name) end
 	return 1, 1, 1
 end
 
